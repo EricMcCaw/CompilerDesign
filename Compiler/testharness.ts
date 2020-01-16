@@ -9,7 +9,6 @@ function main(){
     let tests: any = JSON.parse(data);
     
     for(let i=0;i<tests.length;++i){
-        
         let name: string = tests[i]["name"];
         let ok: any = tests[i]["ok"];
         let grammar: string = tests[i]["grammar"];
