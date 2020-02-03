@@ -30,6 +30,9 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="app.ts" />
+    <Content Include="basictests.txt" />
+    <Content Include="bonus1tests.txt" />
+    <Content Include="bonus2tests.txt" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="testcases.txt" />
@@ -41,6 +44,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="NonTerminal.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="shuntingyard.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="testharness.ts" />
