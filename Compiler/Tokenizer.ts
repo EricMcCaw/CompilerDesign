@@ -25,7 +25,7 @@ export class Tokenizer {
             
             return new Token("$", undefined, this.lineNumber);
         }
-
+        
         for (let i = 0; i < this.grammar.terminals.length; ++i) {
             let terminal = this.grammar.terminals[i];
             let sym = terminal.sym;
@@ -36,13 +36,20 @@ export class Tokenizer {
                 //m[0] contains matched text as string
                 let lexeme = m[0];
                 this.idx += lexeme.length;
-                let num = lexeme.split("\n");
-                this.lineNumber += num.length -1;
                 
+                let num = lexeme.split("\n");
+                let temp = this.lineNumber;
+                if (sym != "STRING") {
+                    this.lineNumber += num.length - 1;
+                    temp = this.lineNumber;
+                }
+                else {
+                    this.lineNumber += num.length - 1;
+                }
                 if (sym !== "WHITESPACE" && sym !== "COMMENT") {
                     //return new Token using sym, lexeme, and line number
                     
-                    return new Token(sym, lexeme, this.lineNumber);
+                    return new Token(sym, lexeme, temp);
 
                 } else {
                     //skip whitespace and get next real token

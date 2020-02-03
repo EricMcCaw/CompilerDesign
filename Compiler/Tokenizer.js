@@ -28,10 +28,17 @@ var Tokenizer = /** @class */ (function () {
                 var lexeme = m[0];
                 this.idx += lexeme.length;
                 var num = lexeme.split("\n");
-                this.lineNumber += num.length - 1;
+                var temp = this.lineNumber;
+                if (sym != "STRING") {
+                    this.lineNumber += num.length - 1;
+                    temp = this.lineNumber;
+                }
+                else {
+                    this.lineNumber += num.length - 1;
+                }
                 if (sym !== "WHITESPACE" && sym !== "COMMENT") {
                     //return new Token using sym, lexeme, and line number
-                    return new Token_1.Token(sym, lexeme, this.lineNumber);
+                    return new Token_1.Token(sym, lexeme, temp);
                 }
                 else {
                     //skip whitespace and get next real token
