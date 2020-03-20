@@ -3,10 +3,14 @@ import { Token } from "./Token"
 import { Grammar } from "./Grammar"
 
 export class Tokenizer {
+    
     grammar: Grammar;
     inputData: string;
     lineNumber: number;
     idx: number;    //index of next unparsed char in inputData
+    prevTok: Token;
+    currTok: Token;
+
 
     constructor(grammar: Grammar) {
         this.grammar = grammar;
@@ -17,6 +21,8 @@ export class Tokenizer {
         this.inputData = inputData;
         this.idx = 0;
         this.lineNumber = 1;
+        this.currTok = new Token("NULL", "NULL", -1);
+        this.prevTok = new Token("NULL", "NULL", -1);
     }
     next(): Token {
         
@@ -37,15 +43,23 @@ export class Tokenizer {
                 let lexeme = m[0];
                 this.idx += lexeme.length;
                 let num = lexeme.split("\n");
-                this.lineNumber += num.length -1;
-                
+                let temp = this.lineNumber;
+                if (sym != "STRING") {
+                    this.lineNumber += num.length - 1;
+                    temp = this.lineNumber;
+                }
+                else {
+                    this.lineNumber += num.length - 1;
+                }
                 if (sym !== "WHITESPACE" && sym !== "COMMENT") {
                     //return new Token using sym, lexeme, and line number
-                    
-                    return new Token(sym, lexeme, this.lineNumber);
+                    this.prevTok = this.currTok;
+                    this.currTok = new Token(sym, lexeme, temp);
+                    return this.currTok;
 
                 } else {
                     //skip whitespace and get next real token
+                    this.prevTok = new Token(sym, lexeme, temp);
                     return this.next();
                 }
                 
@@ -53,5 +67,27 @@ export class Tokenizer {
         }
         //no match; syntax error
         throw new Error("syntax error");
+    }
+
+
+    peek(amount: number): Token {
+        let tempToken = new Tokenizer(this.grammar);
+        tempToken.setInput(this.inputData);
+        let currTok = new Token("NULL", "NULL", -1);
+        while (currTok.lexeme != this.currTok.lexeme) {
+            currTok = tempToken.next();
+        }
+        for (let i = 0; i < amount; i++) {
+            currTok = tempToken.next()
+        }
+        return currTok;
+    }
+    previous() {
+        return this.prevTok;
+    }
+    
+
+    atEnd():boolean {
+        return this.idx >= this.inputData.length - 1;
     }
 }

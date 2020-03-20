@@ -11,6 +11,8 @@ var Tokenizer = /** @class */ (function () {
         this.inputData = inputData;
         this.idx = 0;
         this.lineNumber = 1;
+        this.currTok = new Token_1.Token("NULL", "NULL", -1);
+        this.prevTok = new Token_1.Token("NULL", "NULL", -1);
     };
     Tokenizer.prototype.next = function () {
         if (this.idx >= this.inputData.length - 1) {
@@ -28,19 +30,47 @@ var Tokenizer = /** @class */ (function () {
                 var lexeme = m[0];
                 this.idx += lexeme.length;
                 var num = lexeme.split("\n");
-                this.lineNumber += num.length - 1;
+                var temp = this.lineNumber;
+                if (sym != "STRING") {
+                    this.lineNumber += num.length - 1;
+                    temp = this.lineNumber;
+                }
+                else {
+                    this.lineNumber += num.length - 1;
+                }
                 if (sym !== "WHITESPACE" && sym !== "COMMENT") {
                     //return new Token using sym, lexeme, and line number
-                    return new Token_1.Token(sym, lexeme, this.lineNumber);
+                    this.prevTok = this.currTok;
+                    this.currTok = new Token_1.Token(sym, lexeme, temp);
+                    return this.currTok;
                 }
                 else {
                     //skip whitespace and get next real token
+                    this.prevTok = new Token_1.Token(sym, lexeme, temp);
                     return this.next();
                 }
             }
         }
         //no match; syntax error
         throw new Error("syntax error");
+    };
+    Tokenizer.prototype.peek = function (amount) {
+        var tempToken = new Tokenizer(this.grammar);
+        tempToken.setInput(this.inputData);
+        var currTok = new Token_1.Token("NULL", "NULL", -1);
+        while (currTok.lexeme != this.currTok.lexeme) {
+            currTok = tempToken.next();
+        }
+        for (var i = 0; i < amount; i++) {
+            currTok = tempToken.next();
+        }
+        return currTok;
+    };
+    Tokenizer.prototype.previous = function () {
+        return this.prevTok;
+    };
+    Tokenizer.prototype.atEnd = function () {
+        return this.idx >= this.inputData.length - 1;
     };
     return Tokenizer;
 }());

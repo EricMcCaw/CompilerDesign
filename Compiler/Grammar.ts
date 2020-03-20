@@ -17,7 +17,7 @@ export class Grammar
         let swapped = false;
         for (let i = 0; i < newInput.length-1;i++) {
             rex.lastIndex = 0;
-            if (newInput[i].length == 0) {
+            if (newInput[i].length <= 1) {
                 swapped = true;
                 continue;
             }
@@ -91,9 +91,9 @@ export class Grammar
                         }
                         
                     })
-                    if (!found) {
-                        throw new Error("honestly its not good that we even made it here");
-                    }
+                    //if (!found) {
+                    //    throw new Error("honestly its not good that we even made it here");
+                    //}
                 }
             })
         }
@@ -107,7 +107,7 @@ export class Grammar
         let visitedSet: Set<string> = new Set();
         dfs(start, visitedSet);
         if (visitedSet.size != this.nodeList.length) {
-            throw new Error("not everything was visited");
+           // throw new Error("not everything was visited");
             
         }
     }

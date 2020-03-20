@@ -30,20 +30,23 @@ function main(){
 function testWithFile(fname:string): boolean{
     let data:string = fs.readFileSync(fname,"utf8");
     let lst = data.split(/\n/g);
-    for(let i=0;i<lst.length;++i){
+    for (let i = 0; i < lst.length; ++i){
+        //console.clear();
         let line = lst[i].trim();
         if( line.length === 0 )
             continue;
         let idx = line.indexOf("\t");
         let inp = line.substring(0,idx);
         let expectedStr = line.substring(idx);
+        console.log("test number", testCount);
         console.log("Testing "+inp+" ...");
         ++testCount;
         let expected = JSON.parse(expectedStr);
         let actual = parse(inp);
         
-        if( !treesAreSame( actual, expected ) ){
-            console.log("BAD!")
+        if (!treesAreSame(actual, expected)) {
+            console.log("actual:", actual);
+            console.log("expected", expected);
             return false;
         } else {
         }

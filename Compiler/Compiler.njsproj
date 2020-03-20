@@ -33,6 +33,7 @@
     <Content Include="basictests.txt" />
     <Content Include="bonus1tests.txt" />
     <Content Include="bonus2tests.txt" />
+    <Content Include="MyGrammar.txt" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="testcases.txt" />

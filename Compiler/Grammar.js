@@ -13,7 +13,7 @@ var Grammar = /** @class */ (function () {
         var swapped = false;
         for (var i = 0; i < newInput.length - 1; i++) {
             rex.lastIndex = 0;
-            if (newInput[i].length == 0) {
+            if (newInput[i].length <= 1) {
                 swapped = true;
                 continue;
             }
@@ -78,9 +78,9 @@ var Grammar = /** @class */ (function () {
                             found = true;
                         }
                     });
-                    if (!found) {
-                        throw new Error("honestly its not good that we even made it here");
-                    }
+                    //if (!found) {
+                    //    throw new Error("honestly its not good that we even made it here");
+                    //}
                 }
             });
         };
@@ -95,7 +95,7 @@ var Grammar = /** @class */ (function () {
         var visitedSet = new Set();
         dfs(start, visitedSet);
         if (visitedSet.size != this.nodeList.length) {
-            throw new Error("not everything was visited");
+            // throw new Error("not everything was visited");
         }
     }
     return Grammar;

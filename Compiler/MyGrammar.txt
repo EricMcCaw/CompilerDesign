@@ -1,0 +1,27 @@
+ADDOP -> [-+]
+POWOP -> [*][*]
+MULOP -> [*/%]
+ID -> [A-Za-z_]+
+NUM -> \d+
+TYPE -> \b(int|double)\b
+WHILE -> \bwhile\\b
+IF -> \bif\b
+ELSE -> \belse\b
+COMMA -> ,
+EQ -> =
+RP -> [)]
+LP -> [(]
+RBR -> [}]
+LBR -> [{]
+SEMI -> ;
+BITNOT -> [~]
+
+S -> expr | assign | FUNCCALL
+expr -> expr ADDOP term
+expr -> term
+term -> term MULOP factor
+term -> factor
+factor -> ID
+factor -> LP expr RP
+assign -> ID EQ NUM
+func-call -> ID LP
