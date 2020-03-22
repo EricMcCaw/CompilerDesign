@@ -1,77 +1,48 @@
 "use strict";
 exports.__esModule = true;
 var fs = require("fs");
-var Parser_1 = require("./Parser");
+var Grammar_1 = require("./Grammar");
 function main() {
-    var ok = testWithFile("tests.txt", false);
-    if (ok)
-        console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-Basic tests OK [+100]-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    else
-        return;
-    ok = testWithFile("tests.txt", true);
-    if (ok)
-        console.log("-=-=-=-=-=-=-=-=-=-=-Bonus tests OK [+25]-=-=-=-=-=-=-=-=-=-=-");
-    else
-        return;
-}
-function testWithFile(fname, doBonus) {
-    var data = fs.readFileSync(fname, "utf8");
+    var data = fs.readFileSync("tests.txt", "utf8");
     var tests = JSON.parse(data);
-    var numTests = 0;
+    var numPassed = 0;
+    var numFailed = 0;
     for (var i = 0; i < tests.length; ++i) {
         var name_1 = tests[i]["name"];
-        var expected = tests[i]["tree"];
-        var bonus = tests[i]["bonus"];
+        var expected = tests[i]["nullable"];
         var input = tests[i]["input"];
-        if (bonus !== doBonus)
-            continue;
-        var actual = void 0;
-        try {
-            actual = Parser_1.parse(input);
-        }
-        catch (e) {
-            actual = undefined;
-        }
-        //console.log(actual);
-        if (!treesAreSame(actual, expected)) {
-            console.log(i);
-            console.log(actual);
+        //console.log(input);
+        var G = new Grammar_1.Grammar(input);
+        var nullable = G.getNullable();
+        if (!setsAreSame(nullable, expected)) {
+            console.log(nullable);
             console.log(expected);
-            //printchildren(actual,expected);
-            console.log("Test " + name_1 + " failed: Tree mismatch");
-            return false;
+            console.log("Test " + name_1 + " failed");
+            ++numFailed;
         }
-        console.log("Test " + name_1 + " Passed");
-        ++numTests;
+        else
+            ++numPassed;
     }
-    console.log(numTests + " tests OK");
-    return true;
+    console.log(numPassed + " tests OK" + "      " + numFailed + " tests failed");
+    return numFailed == 0;
 }
-function treesAreSame(n1, n2) {
-    if (n1 === undefined && n2 === undefined)
-        return true;
-    if (n1 === undefined && n2 !== undefined) {
+function setsAreSame(s1, s2) {
+    var L1 = [];
+    var L2 = [];
+    s1.forEach(function (x) {
+        L1.push(x);
+    });
+    s2.forEach(function (x) {
+        L2.push(x);
+    });
+    L1.sort();
+    L2.sort();
+    if (L1.length !== L2.length)
         return false;
-    }
-    if (n2 === undefined && n1 !== undefined) {
-        return false;
-    }
-    if (n1["sym"] != n2["sym"]) {
-        return false;
-    }
-    if (n1["children"].length != n2["children"].length) {
-        return false;
-    }
-    for (var i = 0; i < n1["children"].length; ++i) {
-        if (!treesAreSame(n1["children"][i], n2["children"][i]))
+    for (var i = 0; i < L1.length; ++i) {
+        if (L1[i] !== L2[i])
             return false;
     }
     return true;
-}
-function printchildren(n1, n2) {
-    console.log(n1.sym + n2.sym);
-    for (var i = 0; i < n1.children.length; ++i) {
-        printchildren(n1.children[i], n2.children[i]);
-    }
 }
 main();

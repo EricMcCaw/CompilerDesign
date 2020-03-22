@@ -35,7 +35,7 @@ var Grammar = /** @class */ (function () {
                     try {
                         var testRex = new RegExp(newRex, "gy");
                         this.grammarSet.add(name_1.replace(/\s/g, ''));
-                        this.terminals.push(new Terminal(name_1.replace(/\s/g, ''), testRex));
+                        this.terminals.push(new Terminal(name_1.replace(/\s/g, '').trim(), testRex));
                     }
                     catch (_a) {
                         throw new Error("this regex sucks");
@@ -63,7 +63,7 @@ var Grammar = /** @class */ (function () {
             if (currentNode == null) {
                 throw new Error("we have a problem jimbo");
             }
-            var TempArray = this_1.nonTerminals[i].rightSide.split("|");
+            var TempArray = this_1.nonTerminals[i].rightSide;
             var tempstring = void 0;
             tempstring = TempArray.join('');
             TempArray = tempstring.split(" ");
@@ -98,6 +98,15 @@ var Grammar = /** @class */ (function () {
             // throw new Error("not everything was visited");
         }
     }
+    Grammar.prototype.getNullable = function () {
+        var nullable = new Set();
+        for (var i = 0; i < this.nonTerminals.length; i++) {
+            if (this.nonTerminals[i].nullable(this.nonTerminals, this.terminals)) {
+                nullable.add(this.nonTerminals[i].leftSide);
+            }
+        }
+        return nullable;
+    };
     return Grammar;
 }());
 exports.Grammar = Grammar;
@@ -110,9 +119,75 @@ var Terminal = /** @class */ (function () {
 }());
 var NonTerminal = /** @class */ (function () {
     function NonTerminal(left, right) {
-        this.leftSide = left;
-        this.rightSide = right;
+        this.leftSide = left.trim();
+        this.rightSide = right.split('|');
+        this.isNullable = null;
+        for (var i = 0; i < this.rightSide.length; i++) {
+            this.rightSide[i] = this.rightSide[i].trim();
+        }
     }
+    NonTerminal.prototype.nullable = function (arr, termarr) {
+        var _this = this;
+        if (this.isNullable != null) {
+            return this.isNullable;
+        }
+        for (var i = 0; i < this.rightSide.length; i++) {
+            if (this.rightSide[i] == 'lambda') {
+                this.isNullable = true;
+                return true;
+            }
+        }
+        for (var i = 0; i < this.rightSide.length; i++) {
+            if (this.rightSide[i].indexOf(" ") > -1) {
+                var temparray = this.rightSide[i].split(" ");
+                var temp = false;
+                for (var num = 0; num < temparray.length; num++) {
+                    if (this.findTerminal(temparray[num], termarr) != null) {
+                        temp = true;
+                    }
+                }
+                for (var num = 0; num < temparray.length; num++) {
+                    if (!temp) {
+                        if (this.findNonTerminal(temparray[num], arr) != null && this.findNonTerminal(temparray[num], arr) != this) {
+                            if (temparray.every(function (elem) { return _this.findNonTerminal(elem, arr).nullable(arr, termarr); })) {
+                                this.isNullable = true;
+                                return true;
+                            }
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            else {
+                if (this.findNonTerminal(this.rightSide[i], arr) != null) {
+                    if (this.findNonTerminal(this.rightSide[i], arr).nullable(arr, termarr)) {
+                        this.isNullable = true;
+                        return true;
+                    }
+                }
+            }
+        }
+        this.isNullable = false;
+        return false;
+    };
+    NonTerminal.prototype.findTerminal = function (name, array) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].sym == name) {
+                return array[i];
+            }
+        }
+        return null;
+    };
+    NonTerminal.prototype.findNonTerminal = function (name, array) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].leftSide == name) {
+                return array[i];
+            }
+        }
+        return null;
+    };
     return NonTerminal;
 }());
 var NodeType = /** @class */ (function () {

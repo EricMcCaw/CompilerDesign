@@ -40,7 +40,7 @@ export class Grammar
                         
                         let testRex = new RegExp(newRex, "gy");
                         this.grammarSet.add(name.replace(/\s/g, ''));
-                        this.terminals.push(new Terminal(name.replace(/\s/g, ''), testRex));
+                        this.terminals.push(new Terminal(name.replace(/\s/g, '').trim(), testRex));
                         
                     }
                     catch{
@@ -74,7 +74,7 @@ export class Grammar
                 throw new Error("we have a problem jimbo");
             }
 
-            let TempArray = this.nonTerminals[i].rightSide.split("|");
+            let TempArray = this.nonTerminals[i].rightSide
             let tempstring: string;
             tempstring = TempArray.join('');
             TempArray = tempstring.split(" ");
@@ -112,6 +112,21 @@ export class Grammar
 
         }
     }
+
+
+
+    getNullable() {
+        let nullable: Set<string> = new Set();
+        for (let i = 0; i < this.nonTerminals.length; i++) {
+            if (this.nonTerminals[i].nullable(this.nonTerminals, this.terminals)) {
+
+                nullable.add(this.nonTerminals[i].leftSide);
+            }
+
+        }
+        return nullable;
+
+    }
     
 }
 
@@ -124,16 +139,96 @@ class Terminal{
         this.rex = Rex;
 
     }
-
+    
 }
 
 class NonTerminal {
     leftSide: string;
-    rightSide: string;
-
+    rightSide: Array<string>;
+    isNullable: boolean;
     constructor(left: string, right: string) {
-        this.leftSide = left;
-        this.rightSide = right;
+        this.leftSide = left.trim();
+        this.rightSide = right.split('|')
+        this.isNullable = null;
+        for (let i = 0; i < this.rightSide.length; i++) {
+            this.rightSide[i] = this.rightSide[i].trim();
+
+        }
+    }
+
+    nullable(arr: Array<NonTerminal>, termarr: Array<Terminal>): boolean {
+        if (this.isNullable != null) {
+            return this.isNullable;
+        }
+        for (let i = 0; i < this.rightSide.length; i++) {
+            if (this.rightSide[i] == 'lambda') {
+                this.isNullable = true;
+                return true;
+            }
+        }
+        for (let i = 0; i < this.rightSide.length; i++) {
+            if (this.rightSide[i].indexOf(" ") > -1) {
+                let temparray = this.rightSide[i].split(" ")
+                let temp = false;
+                for (let num = 0; num < temparray.length; num++) {
+                    if (this.findTerminal(temparray[num], termarr) != null) {
+                     
+                        temp = true;
+                    }
+                }
+                
+                for (let num = 0; num < temparray.length; num++) {
+                    if (!temp) {
+                        if (this.findNonTerminal(temparray[num], arr) != null && this.findNonTerminal(temparray[num], arr) != this) {
+
+                            if (temparray.every(elem => this.findNonTerminal(elem, arr).nullable(arr, termarr))) {
+                                this.isNullable = true;
+
+                                return true
+                            }
+                        }
+
+                    }
+                    else {
+                        break;
+                    }
+                }
+                    
+            }
+            
+            else {
+                if (this.findNonTerminal(this.rightSide[i], arr) != null) {
+                    if (this.findNonTerminal(this.rightSide[i], arr).nullable(arr,termarr)) {
+                        this.isNullable = true;
+                        return true;
+                    }
+                }
+            }
+        }
+        this.isNullable = false;
+        return false;
+
+    }
+    findTerminal(name: string, array: Array<Terminal>): Terminal {
+        for (let i = 0; i < array.length; i++) {
+            if (array[i].sym == name) {
+                return array[i];
+            }
+
+        }
+        return null;
+
+    }
+    findNonTerminal(name: string, array: Array<NonTerminal>): NonTerminal {
+        for (let i = 0; i < array.length;i++) {
+
+            if (array[i].leftSide == name) {
+                return array[i];
+            }
+
+        }
+        return null;
+
     }
 }
 
