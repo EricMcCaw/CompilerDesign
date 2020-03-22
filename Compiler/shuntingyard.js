@@ -131,13 +131,15 @@ function parse(input) {
 }
 exports.parse = parse;
 var TreeNode = /** @class */ (function () {
-    function TreeNode(sym, token) {
+    function TreeNode(sym, token, num) {
         this.sym = sym;
         this.token = token;
         this.children = [];
+        this.num = num;
     }
     TreeNode.prototype.addChild = function (node) {
         this.children.push(node);
     };
     return TreeNode;
 }());
+exports.TreeNode = TreeNode;

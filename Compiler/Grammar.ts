@@ -109,8 +109,10 @@ export class Grammar
         if (visitedSet.size != this.nodeList.length) {
            // throw new Error("not everything was visited");
             
+
         }
     }
+    
 }
 
 class Terminal{

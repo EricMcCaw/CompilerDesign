@@ -65,6 +65,7 @@ export class Tokenizer {
                 
             }
         }
+        
         //no match; syntax error
         throw new Error("syntax error");
     }
@@ -74,13 +75,41 @@ export class Tokenizer {
         let tempToken = new Tokenizer(this.grammar);
         tempToken.setInput(this.inputData);
         let currTok = new Token("NULL", "NULL", -1);
-        while (currTok.lexeme != this.currTok.lexeme) {
+        while (currTok.lexeme != this.currTok.lexeme || this.currTok.line != currTok.line || tempToken.idx != this.idx) {
             currTok = tempToken.next();
         }
         for (let i = 0; i < amount; i++) {
             currTok = tempToken.next()
         }
         return currTok;
+    }
+    peek2(): Token {
+        let tempToken = new Tokenizer(this.grammar);
+        tempToken.setInput(this.inputData);
+        let currTok = new Token("NULL", "NULL", -1);
+        while (currTok.lexeme != this.currTok.lexeme || this.currTok.line != currTok.line || tempToken.idx != this.idx) {
+            currTok = tempToken.next();
+        }
+        for (let i = 0; i < 2; i++) {
+            currTok = tempToken.next()
+        }
+        return currTok;
+    }
+
+    expect(check: string):Token {
+        let tempToken = new Tokenizer(this.grammar);
+        tempToken.setInput(this.inputData);
+        let currTok = new Token("NULL", "NULL", -1);
+        while (currTok.lexeme != this.currTok.lexeme || this.currTok.line != currTok.line || tempToken.idx != this.idx) {
+            currTok = tempToken.next();
+        }
+        currTok = tempToken.next()
+        if (currTok.sym == check) {
+            return this.next();
+        }
+        throw new Error("you expected something and didnt get it");
+        return null;
+
     }
     previous() {
         return this.prevTok;

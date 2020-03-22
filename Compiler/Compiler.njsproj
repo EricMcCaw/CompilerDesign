@@ -47,6 +47,9 @@
     <TypeScriptCompile Include="NonTerminal.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="Parser.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="shuntingyard.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

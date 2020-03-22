@@ -153,14 +153,16 @@ export function parse(input: string): TreeNode
 
 
 
-class TreeNode {
+export class TreeNode {
     sym: string;
     token: Token;
     children: TreeNode[];
-    constructor(sym: string, token: Token) {
+    num: number;
+    constructor(sym: string, token: Token,num?:number) {
         this.sym = sym;
         this.token = token;
         this.children = [];
+        this.num = num;
     }
 
     addChild(node:TreeNode) {

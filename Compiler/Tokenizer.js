@@ -58,13 +58,39 @@ var Tokenizer = /** @class */ (function () {
         var tempToken = new Tokenizer(this.grammar);
         tempToken.setInput(this.inputData);
         var currTok = new Token_1.Token("NULL", "NULL", -1);
-        while (currTok.lexeme != this.currTok.lexeme) {
+        while (currTok.lexeme != this.currTok.lexeme || this.currTok.line != currTok.line || tempToken.idx != this.idx) {
             currTok = tempToken.next();
         }
         for (var i = 0; i < amount; i++) {
             currTok = tempToken.next();
         }
         return currTok;
+    };
+    Tokenizer.prototype.peek2 = function () {
+        var tempToken = new Tokenizer(this.grammar);
+        tempToken.setInput(this.inputData);
+        var currTok = new Token_1.Token("NULL", "NULL", -1);
+        while (currTok.lexeme != this.currTok.lexeme || this.currTok.line != currTok.line || tempToken.idx != this.idx) {
+            currTok = tempToken.next();
+        }
+        for (var i = 0; i < 2; i++) {
+            currTok = tempToken.next();
+        }
+        return currTok;
+    };
+    Tokenizer.prototype.expect = function (check) {
+        var tempToken = new Tokenizer(this.grammar);
+        tempToken.setInput(this.inputData);
+        var currTok = new Token_1.Token("NULL", "NULL", -1);
+        while (currTok.lexeme != this.currTok.lexeme || this.currTok.line != currTok.line || tempToken.idx != this.idx) {
+            currTok = tempToken.next();
+        }
+        currTok = tempToken.next();
+        if (currTok.sym == check) {
+            return this.next();
+        }
+        throw new Error("you expected something and didnt get it");
+        return null;
     };
     Tokenizer.prototype.previous = function () {
         return this.prevTok;
