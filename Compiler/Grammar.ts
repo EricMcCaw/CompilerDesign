@@ -114,12 +114,84 @@ export class Grammar
     }
 
 
+    getFirst(): Map<string, Set<string>> {
+        let first: Map<string, Set<string>> = new Map();
+        let prevFirst: Map<string, Set<string>> = new Map();
+        let nullables: Set<string> = this.getNullable();
+        //console.log("nullables", nullables);
+        for (let i = 0; i < this.terminals.length; i++) {
+            if (this.terminals[i].sym != "WHITESPACE") {
+                let tempSet: Set<string> = new Set();
+                tempSet.add(this.terminals[i].sym);
+                first.set(this.terminals[i].sym, tempSet);
+            }
 
-    getNullable() {
+        }
+
+        for (let i = 0; i <= this.nonTerminals.length; i++) {
+            if (i == this.nonTerminals.length) {
+                i = 0;
+                
+                if (dictionariesAreSame(prevFirst, first)) {
+                    break;
+                }
+                prevFirst = new Map(first);
+
+            }
+            let N = this.nonTerminals[i];
+            
+            for (let j = 0; j < N.rightSide.length; j++) {
+                let P = N.rightSide[j];
+                if (P.split(" ").length > 1) {        
+                    let temp = P.split(" ");
+                    if (temp[0] == N.leftSide) {
+                        continue;
+                    }
+                    if (this.findNonTerminal(temp[0], this.nonTerminals) != null) {
+                        let nonright = this.findNonTerminal(temp[0], this.nonTerminals).rightSide;
+                        let isLam = false;
+                        for (let ind = 0; ind < nonright.length; ind++) {
+                            if (nonright[ind] == 'lambda') {
+                                isLam = true;
+                                break;
+                            }
+                        }
+                        if (isLam) {
+                            first.set(N.leftSide, union(first.get(N.leftSide), first.get(temp[1])));
+                        }
+                    }
+                    first.set(N.leftSide, union(first.get(N.leftSide), first.get(temp[0])));
+                    
+                    if (nullables.has(temp[0])) {
+                        break;
+
+                    }
+
+                }
+                else {
+                    first.set(N.leftSide, union(first.get(N.leftSide), first.get(P)));
+                    //console.log("not splitting ", P);
+                    //if (nullables.has(P)) {
+                    //    break;
+
+                    //}
+                }
+            
+
+            }
+            
+        }
+
+        console.log(first);
+        return first
+
+    }
+
+
+    getNullable(): Set<string> {
         let nullable: Set<string> = new Set();
         for (let i = 0; i < this.nonTerminals.length; i++) {
             if (this.nonTerminals[i].nullable(this.nonTerminals, this.terminals)) {
-
                 nullable.add(this.nonTerminals[i].leftSide);
             }
 
@@ -127,8 +199,93 @@ export class Grammar
         return nullable;
 
     }
+
+    findNonTerminal(name: string, array: Array<NonTerminal>): NonTerminal {
+        for (let i = 0; i < array.length; i++) {
+
+            if (array[i].leftSide == name) {
+                return array[i];
+            }
+
+        }
+        return null;
+
+    }
     
 }
+
+
+
+
+
+function dictionariesAreSame(s1: Map<string, Set<string>>, s2: Map<string, Set<string>>) {
+    let M1 = s1;
+    let M2 = s2;
+
+    let k1: string[] = [];
+    let k2: string[] = [];
+    for (let k of M1.keys())
+        k1.push(k);
+    for (let k of M2.keys())
+        k2.push(k);
+    k1.sort();
+    k2.sort();
+    if (!listsEqual(k1, k2)) {
+        //console.log("keys not equal:", k1, k2);
+        return false;
+    }
+    for (let k of k1) {
+        if (!listsEqual(M1.get(k), M2.get(k))) {
+            //console.log("Lists not equal on key ", k, " : Expected: ", M1.get(k), "what you gave", M2.get(k));
+            return false;
+        }
+    }
+    return true;
+}
+
+function toMap(s: { [key: string]: string[] }) {
+    let r: Map<string, Set<string>> = new Map();
+    for (let k in s) {
+        r.set(k, new Set());
+        s[k].forEach((x: string) => {
+            r.get(k).add(x);
+        });
+    }
+    return r;
+}
+
+function listsEqual(L1a: any, L2a: any) {
+    let L1: string[] = [];
+    let L2: string[] = [];
+    L1a.forEach((x: string) => {
+        L1.push(x);
+    });
+    L2a.forEach((x: string) => {
+        L2.push(x);
+    });
+
+    L1.sort();
+    L2.sort();
+    if (L1.length !== L2.length)
+        return false;
+    for (let i = 0; i < L1.length; ++i) {
+        if (L1[i] !== L2[i])
+            return false;
+    }
+    return true;
+}
+
+function union(setA: Set<string>, setB:Set<string>) {
+    let _union = new Set(setA)
+    if (!isNullOrUndefined(setB)) {
+        let myArr = Array.from(setB)
+        for (let elem of myArr) {
+            _union.add(elem)
+        }
+    }
+    return _union
+}
+
 
 class Terminal{
     sym: string;
@@ -168,7 +325,7 @@ class NonTerminal {
         }
         for (let i = 0; i < this.rightSide.length; i++) {
             if (this.rightSide[i].indexOf(" ") > -1) {
-                let temparray = this.rightSide[i].split(" ")
+                let temparray = this.rightSide[i].split(" ");
                 let temp = false;
                 for (let num = 0; num < temparray.length; num++) {
                     if (this.findTerminal(temparray[num], termarr) != null) {

@@ -1,5 +1,17 @@
 "use strict";
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+    if (m) return m.call(o);
+    if (o && typeof o.length === "number") return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+};
 exports.__esModule = true;
+var util_1 = require("util");
 var Grammar = /** @class */ (function () {
     function Grammar(input) {
         var _this = this;
@@ -98,6 +110,64 @@ var Grammar = /** @class */ (function () {
             // throw new Error("not everything was visited");
         }
     }
+    Grammar.prototype.getFirst = function () {
+        var first = new Map();
+        var prevFirst = new Map();
+        var nullables = this.getNullable();
+        //console.log("nullables", nullables);
+        for (var i = 0; i < this.terminals.length; i++) {
+            if (this.terminals[i].sym != "WHITESPACE") {
+                var tempSet = new Set();
+                tempSet.add(this.terminals[i].sym);
+                first.set(this.terminals[i].sym, tempSet);
+            }
+        }
+        for (var i = 0; i <= this.nonTerminals.length; i++) {
+            if (i == this.nonTerminals.length) {
+                i = 0;
+                if (dictionariesAreSame(prevFirst, first)) {
+                    break;
+                }
+                prevFirst = new Map(first);
+            }
+            var N = this.nonTerminals[i];
+            for (var j = 0; j < N.rightSide.length; j++) {
+                var P = N.rightSide[j];
+                if (P.split(" ").length > 1) {
+                    var temp = P.split(" ");
+                    if (temp[0] == N.leftSide) {
+                        continue;
+                    }
+                    if (this.findNonTerminal(temp[0], this.nonTerminals) != null) {
+                        var nonright = this.findNonTerminal(temp[0], this.nonTerminals).rightSide;
+                        var isLam = false;
+                        for (var ind = 0; ind < nonright.length; ind++) {
+                            if (nonright[ind] == 'lambda') {
+                                isLam = true;
+                                break;
+                            }
+                        }
+                        if (isLam) {
+                            first.set(N.leftSide, union(first.get(N.leftSide), first.get(temp[1])));
+                        }
+                    }
+                    first.set(N.leftSide, union(first.get(N.leftSide), first.get(temp[0])));
+                    if (nullables.has(temp[0])) {
+                        break;
+                    }
+                }
+                else {
+                    first.set(N.leftSide, union(first.get(N.leftSide), first.get(P)));
+                    //console.log("not splitting ", P);
+                    //if (nullables.has(P)) {
+                    //    break;
+                    //}
+                }
+            }
+        }
+        console.log(first);
+        return first;
+    };
     Grammar.prototype.getNullable = function () {
         var nullable = new Set();
         for (var i = 0; i < this.nonTerminals.length; i++) {
@@ -107,9 +177,126 @@ var Grammar = /** @class */ (function () {
         }
         return nullable;
     };
+    Grammar.prototype.findNonTerminal = function (name, array) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].leftSide == name) {
+                return array[i];
+            }
+        }
+        return null;
+    };
     return Grammar;
 }());
 exports.Grammar = Grammar;
+function dictionariesAreSame(s1, s2) {
+    var e_1, _a, e_2, _b, e_3, _c;
+    var M1 = s1;
+    var M2 = s2;
+    var k1 = [];
+    var k2 = [];
+    try {
+        for (var _d = __values(M1.keys()), _e = _d.next(); !_e.done; _e = _d.next()) {
+            var k = _e.value;
+            k1.push(k);
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (_e && !_e.done && (_a = _d["return"])) _a.call(_d);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    try {
+        for (var _f = __values(M2.keys()), _g = _f.next(); !_g.done; _g = _f.next()) {
+            var k = _g.value;
+            k2.push(k);
+        }
+    }
+    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+    finally {
+        try {
+            if (_g && !_g.done && (_b = _f["return"])) _b.call(_f);
+        }
+        finally { if (e_2) throw e_2.error; }
+    }
+    k1.sort();
+    k2.sort();
+    if (!listsEqual(k1, k2)) {
+        //console.log("keys not equal:", k1, k2);
+        return false;
+    }
+    try {
+        for (var k1_1 = __values(k1), k1_1_1 = k1_1.next(); !k1_1_1.done; k1_1_1 = k1_1.next()) {
+            var k = k1_1_1.value;
+            if (!listsEqual(M1.get(k), M2.get(k))) {
+                //console.log("Lists not equal on key ", k, " : Expected: ", M1.get(k), "what you gave", M2.get(k));
+                return false;
+            }
+        }
+    }
+    catch (e_3_1) { e_3 = { error: e_3_1 }; }
+    finally {
+        try {
+            if (k1_1_1 && !k1_1_1.done && (_c = k1_1["return"])) _c.call(k1_1);
+        }
+        finally { if (e_3) throw e_3.error; }
+    }
+    return true;
+}
+function toMap(s) {
+    var r = new Map();
+    var _loop_2 = function (k) {
+        r.set(k, new Set());
+        s[k].forEach(function (x) {
+            r.get(k).add(x);
+        });
+    };
+    for (var k in s) {
+        _loop_2(k);
+    }
+    return r;
+}
+function listsEqual(L1a, L2a) {
+    var L1 = [];
+    var L2 = [];
+    L1a.forEach(function (x) {
+        L1.push(x);
+    });
+    L2a.forEach(function (x) {
+        L2.push(x);
+    });
+    L1.sort();
+    L2.sort();
+    if (L1.length !== L2.length)
+        return false;
+    for (var i = 0; i < L1.length; ++i) {
+        if (L1[i] !== L2[i])
+            return false;
+    }
+    return true;
+}
+function union(setA, setB) {
+    var e_4, _a;
+    var _union = new Set(setA);
+    if (!util_1.isNullOrUndefined(setB)) {
+        var myArr = Array.from(setB);
+        try {
+            for (var myArr_1 = __values(myArr), myArr_1_1 = myArr_1.next(); !myArr_1_1.done; myArr_1_1 = myArr_1.next()) {
+                var elem = myArr_1_1.value;
+                _union.add(elem);
+            }
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (myArr_1_1 && !myArr_1_1.done && (_a = myArr_1["return"])) _a.call(myArr_1);
+            }
+            finally { if (e_4) throw e_4.error; }
+        }
+    }
+    return _union;
+}
 var Terminal = /** @class */ (function () {
     function Terminal(Sym, Rex) {
         this.sym = Sym;
