@@ -110,11 +110,57 @@ var Grammar = /** @class */ (function () {
             // throw new Error("not everything was visited");
         }
     }
+    Grammar.prototype.getFollow = function () {
+        var follow = new Map();
+        var prevfollow = new Map();
+        var first = this.getFirst();
+        var nullables = this.getNullable();
+        //console.log("nullables", nullables);
+        follow.set(this.nonTerminals[0].leftSide, new Set("$"));
+        for (var i = 0; i <= this.nonTerminals.length; i++) {
+            if (i == this.nonTerminals.length) {
+                i = 0;
+                if (dictionariesAreSame(prevfollow, follow)) {
+                    break;
+                }
+                prevfollow = new Map(follow);
+            }
+            var N = this.nonTerminals[i];
+            for (var j = 0; j < N.rightSide.length; j++) {
+                var P = N.rightSide[j];
+                if (P.split(" ").length > 1) {
+                    var temp = P.split(" ");
+                    for (var place = 0; place < temp.length; place++) {
+                        var x = temp[place];
+                        if (this.findNonTerminal(x, this.nonTerminals) != null) {
+                            var broke = false;
+                            for (var t = 1; t < temp.length - place; t++) {
+                                var y = temp[place + t];
+                                follow.set(x, union(follow.get(x), first.get(y)));
+                                if (!nullables.has(y)) {
+                                    broke = true;
+                                    break;
+                                }
+                            }
+                            if (!broke) {
+                                follow.set(x, union(follow.get(N.leftSide), follow.get(x)));
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (this.findNonTerminal(P, this.nonTerminals) != null) {
+                        follow.set(P, union(follow.get(N.leftSide), follow.get(P)));
+                    }
+                }
+            }
+        }
+        return follow;
+    };
     Grammar.prototype.getFirst = function () {
         var first = new Map();
         var prevFirst = new Map();
         var nullables = this.getNullable();
-        //console.log("nullables", nullables);
         for (var i = 0; i < this.terminals.length; i++) {
             if (this.terminals[i].sym != "WHITESPACE") {
                 var tempSet = new Set();
@@ -158,14 +204,9 @@ var Grammar = /** @class */ (function () {
                 }
                 else {
                     first.set(N.leftSide, union(first.get(N.leftSide), first.get(P)));
-                    //console.log("not splitting ", P);
-                    //if (nullables.has(P)) {
-                    //    break;
-                    //}
                 }
             }
         }
-        console.log(first);
         return first;
     };
     Grammar.prototype.getNullable = function () {
@@ -244,19 +285,6 @@ function dictionariesAreSame(s1, s2) {
     }
     return true;
 }
-function toMap(s) {
-    var r = new Map();
-    var _loop_2 = function (k) {
-        r.set(k, new Set());
-        s[k].forEach(function (x) {
-            r.get(k).add(x);
-        });
-    };
-    for (var k in s) {
-        _loop_2(k);
-    }
-    return r;
-}
 function listsEqual(L1a, L2a) {
     var L1 = [];
     var L2 = [];
@@ -313,6 +341,24 @@ var NonTerminal = /** @class */ (function () {
             this.rightSide[i] = this.rightSide[i].trim();
         }
     }
+    NonTerminal.prototype.onRightside = function (check) {
+        for (var i = 0; i < this.rightSide.length; i++) {
+            if (this.rightSide[i].split(" ").length > 1) {
+                var temp = this.rightSide[i].split(" ");
+                for (var j = 0; j < temp.length; j++) {
+                    if (temp[j] == check) {
+                        return true;
+                    }
+                }
+            }
+            else {
+                if (this.rightSide[i] == check) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
     NonTerminal.prototype.nullable = function (arr, termarr) {
         var _this = this;
         if (this.isNullable != null) {

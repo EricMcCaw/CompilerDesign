@@ -114,11 +114,74 @@ export class Grammar
     }
 
 
+    getFollow(): Map<string, Set<string>> {
+        let follow: Map<string, Set<string>> = new Map();
+        let prevfollow: Map<string, Set<string>> = new Map();
+        let first: Map<string, Set<string>> = this.getFirst();
+        let nullables: Set<string> = this.getNullable();
+        //console.log("nullables", nullables);
+        follow.set(this.nonTerminals[0].leftSide, new Set("$"));
+
+        for (let i = 0; i <= this.nonTerminals.length; i++) {
+            if (i == this.nonTerminals.length) {
+                i = 0;
+
+                if (dictionariesAreSame(prevfollow, follow)) {
+                    break;
+                }
+                prevfollow = new Map(follow);
+
+            }
+            let N = this.nonTerminals[i];
+
+            for (let j = 0; j < N.rightSide.length; j++) {
+                let P = N.rightSide[j];
+                if (P.split(" ").length > 1) {
+                    let temp = P.split(" ");
+
+                    for (let place = 0; place < temp.length; place++) {
+                        let x = temp[place];
+                       
+                        if (this.findNonTerminal(x, this.nonTerminals) != null) {
+                            let broke = false;
+                            for (let t = 1; t < temp.length - place; t++) {
+                                let y = temp[place + t]
+                                follow.set(x, union(follow.get(x), first.get(y)));
+                                if (!nullables.has(y)) {
+                                    broke = true;
+                                    break;
+                                }                          
+                            }
+                            if (!broke) {
+                                follow.set(x, union(follow.get(N.leftSide), follow.get(x)));
+                            }
+
+                        }
+                        
+
+                    }
+
+                }
+                else {
+                  
+                    if (this.findNonTerminal(P, this.nonTerminals) != null) { 
+                        follow.set(P, union(follow.get(N.leftSide), follow.get(P)));
+
+                    }
+
+                }
+
+            }
+
+        }
+        
+        
+        return follow;
+    }
     getFirst(): Map<string, Set<string>> {
         let first: Map<string, Set<string>> = new Map();
         let prevFirst: Map<string, Set<string>> = new Map();
         let nullables: Set<string> = this.getNullable();
-        //console.log("nullables", nullables);
         for (let i = 0; i < this.terminals.length; i++) {
             if (this.terminals[i].sym != "WHITESPACE") {
                 let tempSet: Set<string> = new Set();
@@ -170,11 +233,6 @@ export class Grammar
                 }
                 else {
                     first.set(N.leftSide, union(first.get(N.leftSide), first.get(P)));
-                    //console.log("not splitting ", P);
-                    //if (nullables.has(P)) {
-                    //    break;
-
-                    //}
                 }
             
 
@@ -182,7 +240,6 @@ export class Grammar
             
         }
 
-        console.log(first);
         return first
 
     }
@@ -243,17 +300,6 @@ function dictionariesAreSame(s1: Map<string, Set<string>>, s2: Map<string, Set<s
     return true;
 }
 
-function toMap(s: { [key: string]: string[] }) {
-    let r: Map<string, Set<string>> = new Map();
-    for (let k in s) {
-        r.set(k, new Set());
-        s[k].forEach((x: string) => {
-            r.get(k).add(x);
-        });
-    }
-    return r;
-}
-
 function listsEqual(L1a: any, L2a: any) {
     let L1: string[] = [];
     let L2: string[] = [];
@@ -312,6 +358,28 @@ class NonTerminal {
 
         }
     }
+
+    onRightside(check: string) {
+        for (let i = 0; i < this.rightSide.length; i++) {
+            if (this.rightSide[i].split(" ").length > 1) {
+                let temp = this.rightSide[i].split(" ");
+                for (let j = 0; j < temp.length; j++) {
+                    if (temp[j] == check) {
+                        return true;
+                    }
+                }
+
+            }
+            else {
+                if (this.rightSide[i] == check) {
+                    return true;
+                }
+            }
+
+        }   
+        return false;
+    }
+
 
     nullable(arr: Array<NonTerminal>, termarr: Array<Terminal>): boolean {
         if (this.isNullable != null) {

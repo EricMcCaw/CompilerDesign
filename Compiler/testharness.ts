@@ -12,14 +12,14 @@ function main(){
     for(let i=0;i<tests.length;++i){
         
         let name: string = tests[i]["name"];
-        let expected: { [key:string] : string[]} = tests[i]["first"];
+        let expected: { [key:string] : string[]} = tests[i]["follow"];
         let input: string = tests[i]["input"];
-        console.log(input);
+        console.clear();
         let G = new Grammar(input);
-        
-        let first : Map<string,Set<string>> = G.getFirst();
+        console.log(input);
+        let first : Map<string,Set<string>> = G.getFollow();
         if( !dictionariesAreSame( expected, first ) ){
-            console.log("Test "+name+" failed");
+            console.log("Test "+name+" failed Number was ",i);
             ++numFailed;
             break;
         } 
@@ -33,7 +33,9 @@ function main(){
 function dictionariesAreSame( s1: { [key:string] : string[]}, s2: Map<string,Set<string>> ){
     let M1: Map<string,Set<string>> = toMap(s1);
     let M2 = s2;
-    
+
+    //console.log(M1);
+    //console.log(M2);
     let k1: string[] = [];
     let k2: string[] = [];
     for(let k of M1.keys() )
@@ -43,12 +45,12 @@ function dictionariesAreSame( s1: { [key:string] : string[]}, s2: Map<string,Set
     k1.sort();
     k2.sort();
     if( !listsEqual(k1,k2) ){
-        console.log("keys not equal:",k1,k2);
+        console.log("Lists not equal:",k1,k2);
         return false;
     }
     for(let k of k1){
         if( !listsEqual( M1.get(k), M2.get(k) ) ){
-            console.log("Lists not equal on key ",k," : Expected: ",M1.get(k),"what you gave", M2.get(k)  );
+            console.log("Lists not equal on key",k ,M1.get(k), M2.get(k)  );
             return false;
         }
     }

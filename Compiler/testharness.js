@@ -20,13 +20,14 @@ function main() {
     var numFailed = 0;
     for (var i = 0; i < tests.length; ++i) {
         var name_1 = tests[i]["name"];
-        var expected = tests[i]["first"];
+        var expected = tests[i]["follow"];
         var input = tests[i]["input"];
-        console.log(input);
+        console.clear();
         var G = new Grammar_1.Grammar(input);
-        var first = G.getFirst();
+        console.log(input);
+        var first = G.getFollow();
         if (!dictionariesAreSame(expected, first)) {
-            console.log("Test " + name_1 + " failed");
+            console.log("Test " + name_1 + " failed Number was ", i);
             ++numFailed;
             break;
         }
@@ -40,6 +41,8 @@ function dictionariesAreSame(s1, s2) {
     var e_1, _a, e_2, _b, e_3, _c;
     var M1 = toMap(s1);
     var M2 = s2;
+    //console.log(M1);
+    //console.log(M2);
     var k1 = [];
     var k2 = [];
     try {
@@ -71,14 +74,14 @@ function dictionariesAreSame(s1, s2) {
     k1.sort();
     k2.sort();
     if (!listsEqual(k1, k2)) {
-        console.log("keys not equal:", k1, k2);
+        console.log("Lists not equal:", k1, k2);
         return false;
     }
     try {
         for (var k1_1 = __values(k1), k1_1_1 = k1_1.next(); !k1_1_1.done; k1_1_1 = k1_1.next()) {
             var k = k1_1_1.value;
             if (!listsEqual(M1.get(k), M2.get(k))) {
-                console.log("Lists not equal on key ", k, " : Expected: ", M1.get(k), "what you gave", M2.get(k));
+                console.log("Lists not equal on key", k, M1.get(k), M2.get(k));
                 return false;
             }
         }
