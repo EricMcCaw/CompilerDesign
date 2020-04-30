@@ -33,9 +33,16 @@
     <Content Include="basictests.txt" />
     <Content Include="bonus1tests.txt" />
     <Content Include="bonus2tests.txt" />
+    <Content Include="gram.txt" />
     <Content Include="MyGrammar.txt" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="runantlr.bat">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="setPath.bat">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="testcases.txt" />
     <Content Include="tests.txt" />
     <Content Include="tsconfig.json" />

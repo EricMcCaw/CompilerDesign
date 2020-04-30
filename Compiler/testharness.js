@@ -1,130 +1,23 @@
 "use strict";
-var __values = (this && this.__values) || function(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-};
 exports.__esModule = true;
 var fs = require("fs");
-var Grammar_1 = require("./Grammar");
+var parser_1 = require("./parser");
 function main() {
-    var data = fs.readFileSync("tests.txt", "utf8");
-    var tests = JSON.parse(data);
-    var numPassed = 0;
-    var numFailed = 0;
-    for (var i = 0; i < tests.length; ++i) {
-        var name_1 = tests[i]["name"];
-        var expected = tests[i]["follow"];
-        var input = tests[i]["input"];
-        console.clear();
-        var G = new Grammar_1.Grammar(input);
-        console.log(input);
-        var first = G.getFollow();
-        if (!dictionariesAreSame(expected, first)) {
-            console.log("Test " + name_1 + " failed Number was ", i);
-            ++numFailed;
-            break;
-        }
-        else
-            ++numPassed;
-    }
-    console.log(numPassed + " tests OK" + "      " + numFailed + " tests failed");
-    return numFailed == 0;
-}
-function dictionariesAreSame(s1, s2) {
-    var e_1, _a, e_2, _b, e_3, _c;
-    var M1 = toMap(s1);
-    var M2 = s2;
-    //console.log(M1);
-    //console.log(M2);
-    var k1 = [];
-    var k2 = [];
+    var inp = fs.readFileSync("input1.txt", "utf8");
+    var root = parser_1.parse(inp);
+    fs.writeFileSync("tree.dot", root);
+    console.log("Wrote tree.dot");
+    inp = fs.readFileSync("input3.txt", "utf8");
+    root = parser_1.parse(inp);
+    fs.writeFileSync("tree3.dot", root);
+    console.log("Wrote tree3.dot");
     try {
-        for (var _d = __values(M1.keys()), _e = _d.next(); !_e.done; _e = _d.next()) {
-            var k = _e.value;
-            k1.push(k);
-        }
+        inp = fs.readFileSync("input2.txt", "utf8");
+        root = parser_1.parse(inp);
+        console.log("Accepted invalid input2.txt");
     }
-    catch (e_1_1) { e_1 = { error: e_1_1 }; }
-    finally {
-        try {
-            if (_e && !_e.done && (_a = _d["return"])) _a.call(_d);
-        }
-        finally { if (e_1) throw e_1.error; }
+    catch (e) {
+        console.log("Rejected invalid input2.txt: Good.");
     }
-    try {
-        for (var _f = __values(M2.keys()), _g = _f.next(); !_g.done; _g = _f.next()) {
-            var k = _g.value;
-            k2.push(k);
-        }
-    }
-    catch (e_2_1) { e_2 = { error: e_2_1 }; }
-    finally {
-        try {
-            if (_g && !_g.done && (_b = _f["return"])) _b.call(_f);
-        }
-        finally { if (e_2) throw e_2.error; }
-    }
-    k1.sort();
-    k2.sort();
-    if (!listsEqual(k1, k2)) {
-        console.log("Lists not equal:", k1, k2);
-        return false;
-    }
-    try {
-        for (var k1_1 = __values(k1), k1_1_1 = k1_1.next(); !k1_1_1.done; k1_1_1 = k1_1.next()) {
-            var k = k1_1_1.value;
-            if (!listsEqual(M1.get(k), M2.get(k))) {
-                console.log("Lists not equal on key", k, M1.get(k), M2.get(k));
-                return false;
-            }
-        }
-    }
-    catch (e_3_1) { e_3 = { error: e_3_1 }; }
-    finally {
-        try {
-            if (k1_1_1 && !k1_1_1.done && (_c = k1_1["return"])) _c.call(k1_1);
-        }
-        finally { if (e_3) throw e_3.error; }
-    }
-    return true;
-}
-function toMap(s) {
-    var r = new Map();
-    var _loop_1 = function (k) {
-        r.set(k, new Set());
-        s[k].forEach(function (x) {
-            r.get(k).add(x);
-        });
-    };
-    for (var k in s) {
-        _loop_1(k);
-    }
-    return r;
-}
-function listsEqual(L1a, L2a) {
-    var L1 = [];
-    var L2 = [];
-    L1a.forEach(function (x) {
-        L1.push(x);
-    });
-    L2a.forEach(function (x) {
-        L2.push(x);
-    });
-    L1.sort();
-    L2.sort();
-    if (L1.length !== L2.length)
-        return false;
-    for (var i = 0; i < L1.length; ++i) {
-        if (L1[i] !== L2[i])
-            return false;
-    }
-    return true;
 }
 main();
