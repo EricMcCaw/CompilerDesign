@@ -8,7 +8,8 @@ let Lexer = require('./gramLexer.js').gramLexer;
 let Parser = require('./gramParser.js').gramParser
 
 export function parse(input: string) {
-    
+
+    //console.log(Lexer);
     let stream = new antlr4.InputStream(input);
     let lexer = new Lexer(stream);
     let tokens = new antlr4.CommonTokenStream(lexer);
@@ -21,12 +22,8 @@ export function parse(input: string) {
 
     parser.buildParseTrees = true;
     let antlrroot = parser.program();
-    let root: TreeNode = walk(parser, antlrroot);
-
-
-
     
-
+    let root: TreeNode = walk(parser, antlrroot);
     return root;
 
     function walk(parser: any, node: any) {

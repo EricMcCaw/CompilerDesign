@@ -29,7 +29,6 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="app.ts" />
     <Content Include="basictests.txt" />
     <Content Include="bonus1tests.txt" />
     <Content Include="bonus2tests.txt" />

@@ -5,6 +5,7 @@ var antlr4 = require('./antlr4');
 var Lexer = require('./gramLexer.js').gramLexer;
 var Parser = require('./gramParser.js').gramParser;
 function parse(input) {
+    //console.log(Lexer);
     var stream = new antlr4.InputStream(input);
     var lexer = new Lexer(stream);
     var tokens = new antlr4.CommonTokenStream(lexer);
