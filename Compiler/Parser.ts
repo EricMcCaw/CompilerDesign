@@ -1,5 +1,6 @@
 import { Tokenizer } from "./Tokenizer"
 import { Grammar } from "./Grammar"
+//import {TreeNode} from "./shuntingyard"
 
 declare var require: any;
 let fs = require("fs");
@@ -14,13 +15,14 @@ export function parse(input: string) {
     let lexer = new Lexer(stream);
     let tokens = new antlr4.CommonTokenStream(lexer);
     let parser = new Parser(tokens);
+    parser.buildParseTrees = true;
     let handler = new ErrorHandler();
     lexer.removeErrorListeners();
     lexer.addErrorListener(handler);
     parser.removeErrorListeners()
     parser.addErrorListener(handler);
 
-    parser.buildParseTrees = true;
+
     let antlrroot = parser.program();
     
     let root: TreeNode = walk(parser, antlrroot);
@@ -76,7 +78,37 @@ class TreeNode {
         this.children = [];
     }
     toString() {
-        return `${this.sym} ${this.token} ${this.children}`
+        function walk(n: any, callback: any) {
+            callback(n);
+            n.children.forEach((x: any) => {
+                walk(x, callback);
+            });
+        }
+        let L: string[] = [];
+        L.push("digraph d{");
+        L.push(`node [fontname="Helvetica",shape=box];`);
+        let counter = 0;
+        walk(this, (n: any) => {
+            n.NUMBER = "n" + (counter++);
+            let tmp = n.sym;
+            if (n.token) {
+                tmp += "\n";
+                tmp += n.token.lexeme;
+            }
+            tmp = tmp.replace(/&/g, "&amp;");
+            tmp = tmp.replace(/</g, "&lt;");
+            tmp = tmp.replace(/>/g, "&gt;");
+            tmp = tmp.replace(/\n/g, "<br/>");
+
+            L.push(`${n.NUMBER} [label=<${tmp}>];`);
+        });
+        walk(this, (n: any) => {
+            n.children.forEach((x: any) => {
+                L.push(`${n.NUMBER} -> ${x.NUMBER};`);
+            });
+        });
+        L.push("}");
+        return L.join("\n");
     }
 }
 
